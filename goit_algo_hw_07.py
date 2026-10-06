@@ -22,9 +22,10 @@ class Birthday(Field):
     def __init__(self, value):
         try:
             # Додайте перевірку коректності даних
-            self.value = datetime.strptime(value, "%d.%m.%Y").date()
+            datetime.strptime(value, "%d.%m.%Y")
         except ValueError:
             raise ValueError("Invalid date format. Use DD.MM.YYYY")
+        super().__init__(value)
     
 
 class Record:
@@ -117,24 +118,60 @@ def parse_input(user_input):
     cmd = cmd.strip().lower()
     return cmd, *args
 
-
+@input_error
 def add_contact(args, contacts):
     name, phone = args
     contacts[name] = phone
     return "Contact added."
+
+
+@input_error
+def add_contact(args, contacts):
+    name, phone = args
+    contacts[name] = phone
+    return "Contact added."
+
+
+@input_error
+def add_contact(args, book: AddressBook):
+    name, phone_number, *_ = args
+    record = book.find(name)
+    
+    if record is None:
+        record = Record(name)
+        book.add_record(record)
+        message = "Contact added."
+    else:
+        message = "Phone added to existing contact."
+        
+    # Добавляем телефон (здесь как раз сработает проверка Phone на 10 цифр)
+    record.add_phone(phone_number)
+    return message
+
+@input_error
 def change_contact(args, contacts):
     name, phone = args
     contacts[name] = phone
     return "change_contact"
 
 
-def show_phone(args, contacts):
-    name = args[0]
-    return contacts[name]
+@input_error
+def show_phone(args, book):
+    name, *_ = args
+    record = book.find(name)
+    if record is None:
+        return "Contact not found."
+    if not record.phones:
+        return "No phones found for this contact."
+    return "; ".join(phone.value for phone in record.phones)
 
 
-def show_all(contacts):
-    return contacts
+
+@input_error
+def show_all(book):
+    if not book.data:
+        return "Address book is empty."
+    return "\n".join(str(record) for record in book.values())
         
 
 
