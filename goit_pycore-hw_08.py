@@ -1,3 +1,4 @@
+import pickle
 from collections import UserDict
 from datetime import datetime, timedelta, date
 
@@ -31,6 +32,7 @@ class Record:
         self.name = Name(name)
         self.phones = []
         self.birthday = None
+
 
     def add_birthday(self, birthday_string):
         self.birthday = Birthday(birthday_string)
@@ -116,6 +118,17 @@ def parse_input(user_input):
     cmd = cmd.strip().lower()
     return cmd, *args
 
+def save_data(book, filename="addressbook.pkl"):
+    with open(filename, "wb") as f:
+        pickle.dump(book, f)
+
+def load_data(filename="addressbook.pkl"):
+    try:
+        with open(filename, "rb") as f:
+            return pickle.load(f)
+    except FileNotFoundError:
+        return AddressBook()
+
 @input_error
 def add_contact(args, book: AddressBook):
     if len(args) < 2:
@@ -194,7 +207,7 @@ def birthdays(args, book):
     return "\n".join(all_birthdays)
 
 def main():
-    book = AddressBook()
+    book = load_data()
     print("Welcome to the assistant bot!")
     while True:
         user_input = input("Enter a command: ")
@@ -206,6 +219,7 @@ def main():
 
         if command in ["close", "exit"]:
             print("Good bye!")
+            save_data(book)
             break
         elif command == "hello":
             print("How can I help you?")
